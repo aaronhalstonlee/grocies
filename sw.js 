@@ -1,9 +1,9 @@
-const CACHE_NAME = 'dinner-planner-v1';
+const CACHE_NAME = 'grocies-v1';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './app.js',
+  './script.js',
   './manifest.json'
 ];
 
