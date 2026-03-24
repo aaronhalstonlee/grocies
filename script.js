@@ -353,7 +353,7 @@ function doImport() {
     
     save();
     rAll();
-    closeModal('ov-import');
+    close('ov-import');
     toast(`Imported: ${added} new, ${updated} updated`);
 }
 
