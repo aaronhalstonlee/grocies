@@ -3,6 +3,7 @@
   "short_name": "Grocies",
   "description": "Weekly meal planning and grocery lists.",
   "start_url": "/grocies/",
+  "scope": "/grocies/",
   "display": "standalone",
   "background_color": "#f4f6f4",
   "theme_color": "#2d6a4f",
