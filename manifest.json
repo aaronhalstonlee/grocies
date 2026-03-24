@@ -1,0 +1,17 @@
+{
+  "name": "Grocies",
+  "short_name": "Grocies",
+  "description": "Weekly meal planning and grocery lists.",
+  "start_url": "/grocies/",
+  "display": "standalone",
+  "background_color": "#f4f6f4",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3448/3448609.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
