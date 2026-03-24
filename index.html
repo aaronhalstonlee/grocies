@@ -1,135 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name="theme-color" content="#2d6a4f">
-<title>Dinner Planner</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <meta name="theme-color" content="#2d6a4f">
+    <title>Dinner Planner</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="hdr">
-  <h1>🍽 Dinner Planner</h1>
-  <div class="hdr-sub" id="week-lbl"></div>
+    <h1>🍽 Dinner Planner</h1>
+    <div class="hdr-sub" id="week-lbl"></div>
 </div>
 
-<!-- PLAN -->
 <div id="tab-plan" class="tab on content">
-  <div class="rules" id="rules-bar"></div>
-  <div class="row2" style="margin-bottom:13px">
-    <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
-    <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
-  </div>
-  <div class="slbl">This Week</div>
-  <div class="card" id="week-grid"></div>
+    <div class="rules" id="rules-bar"></div>
+    <div class="row2" style="margin-bottom:13px">
+        <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
+        <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
+    </div>
+    <div class="slbl">This Week</div>
+    <div class="card" id="week-grid"></div>
 </div>
 
-<!-- MEALS -->
 <div id="tab-meals" class="tab content">
-  <div class="filters">
-    <button class="pill on" onclick="setFilter('all',this)">All</button>
-    <button class="pill" onclick="setFilter('vegetarian',this)">🥦 Vegetarian</button>
-    <button class="pill" onclick="setFilter('pre-prepared',this)">🧊 Pre-made</button>
-    <button class="pill" onclick="setFilter('high-sodium',this)">🧂 High Sodium</button>
-    <button class="pill" onclick="setFilter('other',this)">🍴 Free Pick</button>
-  </div>
-  <div class="card" id="meals-list"></div>
-  <div style="margin-top:12px">
-    <button class="btn btn-s" onclick="openImport()">📋 Import from Google Sheets</button>
-  </div>
+    <div class="filters">
+        <button class="pill on" onclick="setFilter('all',this)">All</button>
+        <button class="pill" onclick="setFilter('vegetarian',this)">🥦 Vegetarian</button>
+        <button class="pill" onclick="setFilter('pre-prepared',this)">🧊 Pre-made</button>
+        <button class="pill" onclick="setFilter('high-sodium',this)">🧂 High Sodium</button>
+        <button class="pill" onclick="setFilter('other',this)">🍴 Free Pick</button>
+    </div>
+    <div class="card" id="meals-list"></div>
+    <div style="margin-top:12px">
+        <button class="btn btn-s" onclick="openImport()">📋 Import from Google Sheets</button>
+    </div>
 </div>
 
-<!-- SHOP -->
 <div id="tab-shop" class="tab content">
-  <div class="shop-hdr">
-    <div class="slbl" style="margin:0">Grocery List</div>
-    <button class="btn btn-s" style="width:auto;padding:6px 11px;font-size:.75rem" onclick="clearCk()">Clear checked</button>
-  </div>
-  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-  <div id="shop-list"></div>
+    <div class="shop-hdr">
+        <div class="slbl" style="margin:0">Grocery List</div>
+        <button class="btn btn-s" style="width:auto;padding:6px 11px;font-size:.75rem" onclick="clearCk()">Clear checked</button>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div id="shop-list"></div>
 </div>
 
 <nav class="bnav">
-  <button class="nb on" onclick="swTab('plan',this)"><span>🗓</span><span>Plan</span></button>
-  <button class="nb" onclick="swTab('meals',this)"><span>🍽</span><span>Meals</span></button>
-  <button class="nb" onclick="swTab('shop',this)"><span>🛒</span><span>Shop</span></button>
+    <button class="nb on" onclick="swTab('plan',this)"><span>🗓</span><span>Plan</span></button>
+    <button class="nb" onclick="swTab('meals',this)"><span>🍽</span><span>Meals</span></button>
+    <button class="nb" onclick="<span>🛒</span><span>Shop</span></button>
 </nav>
+
 <button class="fab" id="fab" onclick="openAdd()">+</button>
 <div class="toast" id="toast"></div>
 
-<!-- ASSIGN MODAL -->
 <div class="ov h" id="ov-assign">
-  <div class="modal">
-    <div class="modal-hnd"></div>
-    <div class="mhdr"><h2 id="assign-ttl">Choose a meal</h2><button class="mcl" onclick="close('ov-assign')">×</button></div>
-    <div id="assign-list"></div>
-    <div style="margin-top:11px"><button class="btn btn-d" onclick="clearDay()">🗑 Remove meal</button></div>
-  </div>
+    <div class="modal">
+        <div class="modal-hnd"></div>
+        <div class="mhdr"><h2 id="assign-ttl">Choose a meal</h2><button class="mcl" onclick="closeModal('ov-assign')">×</button></div>
+        <div id="assign-list"></div>
+        <div style="margin-top:11px"><button class="btn btn-d" onclick="clearDay()">🗑 Remove meal</button></div>
+    </div>
 </div>
 
-<!-- MEAL EDIT MODAL -->
 <div class="ov h" id="ov-meal">
-  <div class="modal">
-    <div class="modal-hnd"></div>
-    <div class="mhdr"><h2 id="meal-ttl">Add Meal</h2><button class="mcl" onclick="close('ov-meal')">×</button></div>
-    <div class="fg"><label>Meal Name</label><input type="text" id="m-name" placeholder="e.g. Pasta Marinara"></div>
-    <div class="fg">
-      <label>Rule Slot — counts toward...</label>
-      <div class="prim-opts">
-        <button class="popt" id="po-v" onclick="setPrim('vegetarian')">🥦 Vegetarian</button>
-        <button class="popt" id="po-p" onclick="setPrim('pre-prepared')">🧊 Pre-made</button>
-        <button class="popt" id="po-s" onclick="setPrim('high-sodium')">🧂 High Sodium</button>
-        <button class="popt" id="po-o" onclick="setPrim('other')">🍴 Free Pick</button>
-      </div>
+    <div class="modal">
+        <div class="modal-hnd"></div>
+        <div class="mhdr"><h2 id="meal-ttl">Add Meal</h2><button class="mcl" onclick="closeModal('ov-meal')">×</button></div>
+        <div class="fg"><label>Meal Name</label><input type="text" id="m-name" placeholder="e.g. Pasta"></div>
+        <div class="fg">
+            <label>Rule Slot</label>
+            <div class="prim-opts">
+                <button class="popt" id="po-v" onclick="setPrim('vegetarian')">🥦 Veg</button>
+                <button class="popt" id="po-p" onclick="setPrim('pre-prepared')">🧊 Pre</button>
+                <button class="popt" id="po-s" onclick="setPrim('high-sodium')">🧂 Na+</button>
+                <button class="popt" id="po-o" onclick="setPrim('other')">🍴 Free</button>
+            </div>
+        </div>
+        <div class="fg">
+            <label>Cuisine</label>
+            <select id="m-cuisine">
+                <option value="">— none —</option>
+                <option>American</option><option>Asian</option><option>Italian</option><option>Mexican</option><option>Indian</option>
+            </select>
+        </div>
+        <div class="fg">
+            <label>Ingredients (Name:Amt:Aisle)</label>
+            <div id="ing-list"></div>
+            <button class="btn btn-s" style="margin-top:7px" onclick="addIng()">+ Add ingredient</button>
+        </div>
+        <div class="row2" style="margin-top:13px">
+            <button class="btn btn-p" onclick="saveMeal()">Save</button>
+            <button class="btn btn-d" id="del-btn" onclick="delMeal()">🗑</button>
+        </div>
     </div>
-    <div class="fg">
-      <label>Cuisine / Type <span style="font-weight:400;text-transform:none;letter-spacing:0">(helps vary the week)</span></label>
-      <select id="m-cuisine">
-        <option value="">— not specified —</option>
-        <option>American</option><option>Asian</option><option>Italian</option><option>Mexican</option>
-        <option>Mediterranean</option><option>Indian</option><option>Middle Eastern</option><option>Other</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Ingredients <span style="font-weight:400;text-transform:none;letter-spacing:0">(name · amount · aisle)</span></label>
-      <div id="ing-list"></div>
-      <button class="btn btn-s" style="margin-top:7px;font-size:.82rem" onclick="addIng()">+ Add ingredient</button>
-    </div>
-    <div class="row2" style="margin-top:13px">
-      <button class="btn btn-p" onclick="saveMeal()">Save</button>
-      <button class="btn btn-d" id="del-btn" onclick="delMeal()" style="width:auto;padding:12px 13px">🗑</button>
-    </div>
-  </div>
 </div>
 
-<!-- IMPORT MODAL -->
 <div class="ov h" id="ov-import">
-  <div class="modal">
-    <div class="modal-hnd"></div>
-    <div class="mhdr"><h2>Import from Google Sheets</h2><button class="mcl" onclick="close('ov-import')">×</button></div>
-    <div class="guide">
-      <strong>Step 1:</strong> In Google Sheets → <em>File → Download → CSV</em><br>
-      Open the CSV, select all, paste below. Or copy directly from your sheet (tab-separated is fine too).<br><br>
-      <strong>Expected columns:</strong><br>
-      <code>Meal Name</code> &nbsp;·&nbsp; <code>Category</code> &nbsp;·&nbsp; <code>Cuisine</code> (optional)<br><br>
-      <strong>Category values recognized:</strong><br>
-      <code>vegetarian</code> / <code>veg</code> &nbsp;·&nbsp; <code>pre-prepared</code> / <code>premade</code> / <code>frozen</code><br>
-      <code>high-sodium</code> / <code>sodium</code> / <code>salty</code> &nbsp;·&nbsp; anything else → Free Pick<br><br>
-      <em>Header row is auto-skipped. Duplicates are ignored.</em>
+    <div class="modal">
+        <div class="modal-hnd"></div>
+        <div class="mhdr"><h2>Import Meals</h2><button class="mcl" onclick="closeModal('ov-import')">×</button></div>
+        <div class="guide">
+            Format: <code>Name, Category, Cuisine, Ing1:Amt:Aisle; Ing2...</code>
+        </div>
+        <textarea id="import-txt" rows="7" placeholder="Meal,Category,Cuisine,Pasta:1lb:Pantry"></textarea>
+        <div class="import-prev" id="import-prev"></div>
+        <div class="row2">
+            <button class="btn btn-s" onclick="prevImport()">Preview</button>
+            <button class="btn btn-p" onclick="doImport()">Import</button>
+        </div>
     </div>
-    <div class="fg">
-      <label>Paste CSV / TSV data</label>
-      <textarea id="import-txt" rows="7" placeholder="Pasta Marinara,vegetarian,Italian&#10;Frozen Pizza,pre-prepared&#10;Chicken Stir Fry,high-sodium,Asian&#10;Salmon & Veggies,,American"></textarea>
-    </div>
-    <div class="import-prev" id="import-prev"></div>
-    <div class="row2">
-      <button class="btn btn-s" onclick="prevImport()">Preview</button>
-      <button class="btn btn-p" onclick="doImport()">Import</button>
-    </div>
-  </div>
 </div>
 
-<script src="script.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
