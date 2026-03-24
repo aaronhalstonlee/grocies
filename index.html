@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
     <meta name="theme-color" content="#2d6a4f">
     <title>Dinner Planner</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448609.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#2d6a4f">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -115,5 +118,12 @@
 </div>
 
 <script src="script.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log("Service Worker Registered"));
+  }
+</script>
+
 </body>
 </html>
