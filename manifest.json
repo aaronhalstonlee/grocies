@@ -5,6 +5,7 @@
   "start_url": "/grocies/",
   "scope": "/grocies/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f4f6f4",
   "theme_color": "#2d6a4f",
   "icons": [
@@ -12,11 +13,13 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
