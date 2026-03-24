@@ -1,5 +1,5 @@
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const CATS = ['Produce', 'Dairy', 'Meat & Seafood', 'Frozen', 'Pantry', 'Bakery', 'Beverages', 'Other'];
+    const CATS = ['Produce', 'Dairy', 'Meat & Seafood', 'Frozen', 'Pantry', 'Bakery', 'Beverages', 'Costco', 'Refrigerated'];
     const PR = {
       'vegetarian': { ic: '🥦', lb: 'Vegetarian', tc: 'tv', pc: 'ov' },
       'pre-prepared': { ic: '🧊', lb: 'Pre-made', tc: 'tp', pc: 'op' },
@@ -302,7 +302,7 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                 ingredients.push({
                     n: ingName,
                     a: '',       // Leave amount blank for app editing
-                    c: 'Other'   // Default aisle
+                    c: 'Costco'  // Default aisle
                 });
             }
         }
