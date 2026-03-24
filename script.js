@@ -182,49 +182,83 @@ function delMeal() { if (!eMid || !confirm('Delete?')) return; meals = meals.fil
 function openImport() { document.getElementById('import-txt').value = ''; document.getElementById('import-prev').textContent = ''; iParsed = []; document.getElementById('ov-import').classList.remove('h'); }
 
 function parseCSV(txt) {
-    const lines = txt.trim().split('\n').map(l => l.trim()).filter(Boolean);
-    const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(',').map(x => x.replace(/^"|"$/g, '').trim()));
-    const first = (rows[0]?.[0] || '').toLowerCase();
-    const start = (['meal', 'name', 'dinner'].some(w => first.includes(w))) ? 1 : 0;
+    // 1. Split into rows first
+    const lines = txt.trim().split('\n').filter(l => l.trim() !== '');
+    const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(','));
+    
+    if (rows.length === 0) return [];
+
     const out = [];
+    const numCols = rows[0].length;
 
-    for (let i = start; i < rows.length; i++) {
-        const [rn = '', rc = '', rcu = '', ring = ''] = rows[i];
-        const name = rn.trim(); if (!name) continue;
-        const cl = rc.trim().toLowerCase();
-        let primary = 'other';
-        for (const [k, aliases] of Object.entries(ALIASES)) { if (aliases.some(a => cl.includes(a))) { primary = k; break; } }
+    // 2. Iterate through each column
+    for (let c = 0; c < numCols; c++) {
+        const mealName = rows[0][c] ? rows[0][c].trim() : '';
+        if (!mealName) continue; // Skip empty columns
 
-        const ings = [];
-        if (ring.trim()) {
-            ring.split(';').forEach(p => {
-                const parts = p.split(':').map(s => s.trim());
-                if (parts[0]) ings.push({ n: parts[0], a: parts[1] || '', c: CATS.includes(parts[2]) ? parts[2] : 'Other' });
-            });
+        const ingredients = [];
+        // 3. Collect everything under the first row in this column as ingredients
+        for (let r = 1; r < rows.length; r++) {
+            const ingName = rows[r][c] ? rows[r][c].trim() : '';
+            if (ingName) {
+                ingredients.push({
+                    n: ingName,
+                    a: '',       // Leave amount blank for app editing
+                    c: 'Other'   // Default aisle
+                });
+            }
         }
-        out.push({ name, primary, cuisine: rcu.trim(), ings });
+
+        out.push({
+            name: mealName,
+            primary: 'other', // Default category for app editing
+            cuisine: '',
+            ings: ingredients
+        });
     }
     return out;
 }
 
 function prevImport() {
-    iParsed = parseCSV(document.getElementById('import-txt').value);
+    const txt = document.getElementById('import-txt').value;
+    iParsed = parseCSV(txt);
     const el = document.getElementById('import-prev');
-    if (!iParsed.length) { el.textContent = 'No valid rows.'; return; }
-    const ingCount = iParsed.reduce((acc, m) => acc + m.ings.length, 0);
-    el.innerHTML = `<strong>${iParsed.length} meals (${ingCount} items) found.</strong>`;
+    
+    if (!iParsed.length) {
+        el.textContent = 'No meals found in columns.';
+        return;
+    }
+    
+    el.innerHTML = `<strong>Found ${iParsed.length} meal columns:</strong><br>` + 
+                   iParsed.map(m => m.name).join(', ');
 }
 
 function doImport() {
-    if (!iParsed.length) { iParsed = parseCSV(document.getElementById('import-txt').value); if (!iParsed.length) return; }
+    if (!iParsed.length) {
+        iParsed = parseCSV(document.getElementById('import-txt').value);
+        if (!iParsed.length) return;
+    }
+    
     let added = 0, updated = 0;
     iParsed.forEach(m => {
         const idx = meals.findIndex(ex => ex.name.toLowerCase() === m.name.toLowerCase());
-        if (idx > -1) { Object.assign(meals[idx], m); updated++; }
-        else { meals.push({ id: uid(), ...m }); added++; }
+        if (idx > -1) {
+            // We only update ingredients for existing meals
+            // This prevents overwriting categories/cuisines you've already set in the app
+            meals[idx].ings = m.ings;
+            updated++;
+        } else {
+            meals.push({ id: uid(), ...m });
+            added++;
+        }
     });
-    save(); rAll(); closeModal('ov-import'); toast(`Added ${added}, Updated ${updated} ✓`);
+    
+    save();
+    rAll();
+    closeModal('ov-import');
+    toast(`Imported: ${added} new, ${updated} updated`);
 }
+
 
 function togCk(enc) { const k = decodeURIComponent(enc); ckd[k] = !ckd[k]; save(); rShop() }
 function clearCk() { Object.keys(ckd).forEach(k => { if (ckd[k]) delete ckd[k] }); save(); rShop() }
