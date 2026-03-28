@@ -192,11 +192,7 @@ function setFilter(f, btn) {
 }
 
 // ---- Modals ----
-function closeModal(id) { 
-  console.log("closing id: " + id); 
-  let opnWnd = document.getElementById(id)
-  opnWnd.classList.add('h') 
-}
+function closeModal(id) { document.getElementById(id).classList.add('h') }
 
 function openAssign(day) {
   aDay = day;
