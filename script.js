@@ -372,5 +372,5 @@ function toast(msg, ms = 2400) {
   setTimeout(() => t.classList.remove('show'), ms);
 }
 
-document.querySelectorAll('.ov').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.add('h') }));
+document.querySelectorAll('.ovr').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.add('h') }));
 rAll();
