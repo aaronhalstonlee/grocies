@@ -192,7 +192,11 @@ function setFilter(f, btn) {
 }
 
 // ---- Modals ----
-function close(id) { console.log("close"); document.getElementById(id).classList.add('h') }
+function closeModal(id) { 
+  console.log("closing id: " + id); 
+  let opnWnd = document.getElementById(id)
+  opnWnd.classList.add('h') 
+}
 
 function openAssign(day) {
   aDay = day;
@@ -211,8 +215,8 @@ function openAssign(day) {
   document.getElementById('ov-assign').classList.remove('h');
 }
 
-function assignMeal(id) { plan[aDay] = id; save(); rAll(); close('ov-assign') }
-function clearDay() { delete plan[aDay]; save(); rAll(); close('ov-assign') }
+function assignMeal(id) { plan[aDay] = id; save(); rAll(); closeModal('ov-assign') }
+function clearDay() { delete plan[aDay]; save(); rAll(); closeModal('ov-assign') }
 
 function openAdd() {
   eMid = null; ePrim = 'other';
@@ -262,14 +266,14 @@ function saveMeal() {
   });
   if (eMid) { const m = meals.find(x => x.id === eMid); m.name = name; m.primary = ePrim; m.cuisine = cuisine; m.ings = ings; }
   else meals.push({ id: uid(), name, primary: ePrim, cuisine, ings });
-  save(); rAll(); close('ov-meal');
+  save(); rAll(); closeModal('ov-meal');
   toast(eMid ? 'Meal updated ✓' : 'Meal added ✓');
 }
 function delMeal() {
   if (!eMid || !confirm('Delete this meal?')) return;
   meals = meals.filter(m => m.id !== eMid);
   DAYS.forEach(d => { if (plan[d] === eMid) delete plan[d] });
-  save(); rAll(); close('ov-meal'); toast('Meal deleted');
+  save(); rAll(); closeModal('ov-meal'); toast('Meal deleted');
 }
 
 // ---- Import ----
@@ -353,7 +357,7 @@ function doImport() {
 
   save();
   rAll();
-  close('ov-import');
+  closeModal('ov-import');
   toast(`Imported: ${added} new, ${updated} updated`);
 }
 
