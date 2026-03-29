@@ -17,6 +17,7 @@ let plan = lj('dp3_plan', {});
 let lastWk = lj('dp3_last', []);
 let groc = lj('dp3_groc', []);
 let ckd = lj('dp3_ckd', {});
+let staples = lj('dp3_staples', []);
 let eMid = null, ePrim = 'other', aDay = null, mFil = 'all', iParsed = [];
 
 function lj(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d } catch { return d } }
@@ -26,6 +27,7 @@ function save() {
   localStorage.setItem('dp3_last', JSON.stringify(lastWk));
   localStorage.setItem('dp3_groc', JSON.stringify(groc));
   localStorage.setItem('dp3_ckd', JSON.stringify(ckd));
+  localStorage.setItem('dp3_staples', JSON.stringify(staples));
 }
 function uid() { return Math.random().toString(36).slice(2, 9) }
 function shuf(a) { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = 0 | Math.random() * (i + 1);[b[i], b[j]] = [b[j], b[i]]; } return b }
@@ -50,7 +52,7 @@ function seed() {
 // ---- Auto-generate ----
 function autoGen() {
   const cur = DAYS.map(d => plan[d]).filter(Boolean);
-  if (cur.length >= 4) lastWk = cur; // save current as last week before overwriting
+  if (cur.length >= 4) lastWk = cur;
 
   const used = new Set(), usedC = new Set();
 
@@ -60,7 +62,7 @@ function autoGen() {
 
   const pick = (prim, variety = false) => {
     let pool = avail(prim, true);
-    if (!pool.length) pool = avail(prim, false); // relax last-week if needed
+    if (!pool.length) pool = avail(prim, false);
     if (!pool.length) return null;
     if (variety) {
       const novel = pool.filter(m => !usedC.has(m.cuisine));
@@ -156,23 +158,46 @@ function rMeals() {
 
 function rShop() {
   const el = document.getElementById('shop-list');
-  if (!groc.length) {
+  const hasGroc = groc.length > 0;
+  const hasStaples = staples.length > 0;
+
+  if (!hasGroc && !hasStaples) {
     el.innerHTML = '<div class="empty"><div class="empty-ic">🛒</div><p>No list yet.<br>Plan meals then tap "Make List".</p></div>';
-    document.getElementById('prog-fill').style.width = '0%'; return;
+    document.getElementById('prog-fill').style.width = '0%';
+    return;
   }
-  const byCat = {};
-  groc.forEach(i => { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i) });
-  let html = ''; const total = groc.length; let done = 0;
-  Object.values(ckd).forEach(v => { if (v) done++ });
-  CATS.forEach(cat => {
-    if (!byCat[cat]) return;
-    html += `<div class="card"><div class="cat-hdr">${cat}</div>`;
-    byCat[cat].forEach(item => {
-      const raw = `${item.c}::${item.n}`, isck = ckd[raw];
+
+  let html = '';
+  const total = groc.length + staples.length;
+  const done = Object.values(ckd).filter(Boolean).length;
+
+  // Staples section always first
+  if (hasStaples) {
+    html += `<div class="card"><div class="cat-hdr">📌 Staples</div>`;
+    staples.forEach(item => {
+      const raw = `staple:::${item.n.toLowerCase()}`;
+      const isck = ckd[raw];
       html += `<div class="si${isck ? ' ck' : ''}" onclick="togCk('${encodeURIComponent(raw)}')"><div class="sck"></div><div class="si-txt">${item.n}</div>${item.a ? `<div class="si-amt">${item.a}</div>` : ''}</div>`;
     });
     html += '</div>';
-  });
+  }
+
+  // Meal ingredients by category
+  if (hasGroc) {
+    const byCat = {};
+    groc.forEach(i => { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i) });
+    CATS.forEach(cat => {
+      if (!byCat[cat]) return;
+      html += `<div class="card"><div class="cat-hdr">${cat}</div>`;
+      byCat[cat].forEach(item => {
+        const raw = `${item.c}::${item.n}`;
+        const isck = ckd[raw];
+        html += `<div class="si${isck ? ' ck' : ''}" onclick="togCk('${encodeURIComponent(raw)}')"><div class="sck"></div><div class="si-txt">${item.n}</div>${item.a ? `<div class="si-amt">${item.a}</div>` : ''}</div>`;
+      });
+      html += '</div>';
+    });
+  }
+
   el.innerHTML = html;
   document.getElementById('prog-fill').style.width = `${total ? Math.round(done / total * 100) : 0}%`;
 }
@@ -192,7 +217,10 @@ function setFilter(f, btn) {
 }
 
 // ---- Modals ----
-function closeModal(id) { document.getElementById(id).classList.add('h') }
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('h');
+}
 
 function openAssign(day) {
   aDay = day;
@@ -272,6 +300,33 @@ function delMeal() {
   save(); rAll(); closeModal('ov-meal'); toast('Meal deleted');
 }
 
+// ---- Staples ----
+function openStaples() {
+  document.getElementById('staples-list').innerHTML = '';
+  if (staples.length) {
+    staples.forEach(s => addStapleRow(s));
+  } else {
+    addStapleRow();
+  }
+  document.getElementById('ov-staples').classList.remove('h');
+}
+function addStapleRow(ing) {
+  const row = document.createElement('div'); row.className = 'ir';
+  const opts = CATS.map(c => `<option value="${c}"${ing?.c === c ? ' selected' : ''}>${c}</option>`).join('');
+  row.innerHTML = `<input type="text" placeholder="Item" value="${ing?.n || ''}"><input type="text" placeholder="Amount" value="${ing?.a || ''}"><select>${opts}</select><button class="ir-del" onclick="this.parentElement.remove()">×</button>`;
+  document.getElementById('staples-list').appendChild(row);
+}
+function saveStaples() {
+  staples = [];
+  document.querySelectorAll('#staples-list .ir').forEach(r => {
+    const [ni, ai, cs] = r.querySelectorAll('input,select');
+    const n = ni.value.trim(); if (!n) return;
+    staples.push({ n, a: ai.value.trim(), c: cs.value });
+  });
+  save(); rShop(); closeModal('ov-staples');
+  toast(`Staples saved (${staples.length} item${staples.length !== 1 ? 's' : ''}) ✓`);
+}
+
 // ---- Import ----
 function openImport() {
   document.getElementById('import-txt').value = '';
@@ -280,80 +335,42 @@ function openImport() {
   document.getElementById('ov-import').classList.remove('h');
 }
 function parseCSV(txt) {
-  // 1. Split into rows first
   const lines = txt.trim().split('\n').filter(l => l.trim() !== '');
   const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(','));
-
   if (rows.length === 0) return [];
-
   const out = [];
   const numCols = rows[0].length;
-
-  // 2. Iterate through each column
   for (let c = 0; c < numCols; c++) {
     const mealName = rows[0][c] ? rows[0][c].trim() : '';
-    if (!mealName) continue; // Skip empty columns
-
+    if (!mealName) continue;
     const ingredients = [];
-    // 3. Collect everything under the first row in this column as ingredients
     for (let r = 1; r < rows.length; r++) {
       const ingName = rows[r][c] ? rows[r][c].trim() : '';
-      if (ingName) {
-        ingredients.push({
-          n: ingName,
-          a: '',       // Leave amount blank for app editing
-          c: 'Costco'  // Default aisle
-        });
-      }
+      if (ingName) ingredients.push({ n: ingName, a: '', c: 'Costco' });
     }
-
-    out.push({
-      name: mealName,
-      primary: 'other', // Default category for app editing
-      cuisine: '',
-      ings: ingredients
-    });
+    out.push({ name: mealName, primary: 'other', cuisine: '', ings: ingredients });
   }
   return out;
 }
-
 function prevImport() {
   const txt = document.getElementById('import-txt').value;
   iParsed = parseCSV(txt);
   const el = document.getElementById('import-prev');
-
-  if (!iParsed.length) {
-    el.textContent = 'No meals found in columns.';
-    return;
-  }
-
-  el.innerHTML = `<strong>Found ${iParsed.length} meal columns:</strong><br>` +
-    iParsed.map(m => m.name).join(', ');
+  if (!iParsed.length) { el.textContent = 'No meals found in columns.'; return }
+  el.innerHTML = `<strong>Found ${iParsed.length} meal columns:</strong><br>` + iParsed.map(m => m.name).join(', ');
 }
-
 function doImport() {
   if (!iParsed.length) {
     iParsed = parseCSV(document.getElementById('import-txt').value);
     if (!iParsed.length) return;
   }
-
   let added = 0, updated = 0;
   iParsed.forEach(m => {
     const idx = meals.findIndex(ex => ex.name.toLowerCase() === m.name.toLowerCase());
-    if (idx > -1) {
-      // We only update ingredients for existing meals
-      // This prevents overwriting categories/cuisines you've already set in the app
-      meals[idx].ings = m.ings;
-      updated++;
-    } else {
-      meals.push({ id: uid(), ...m });
-      added++;
-    }
+    if (idx > -1) { meals[idx].ings = m.ings; updated++; }
+    else { meals.push({ id: uid(), ...m }); added++; }
   });
-
-  save();
-  rAll();
-  closeModal('ov-import');
+  save(); rAll(); closeModal('ov-import');
   toast(`Imported: ${added} new, ${updated} updated`);
 }
 
