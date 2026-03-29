@@ -326,6 +326,39 @@ function saveStaples() {
   save(); rShop(); closeModal('ov-staples');
   toast(`Staples saved (${staples.length} item${staples.length !== 1 ? 's' : ''}) ✓`);
 }
+function toggleStaplesImport() {
+  const panel = document.getElementById('staples-import-panel');
+  const isHidden = panel.classList.toggle('h');
+  document.getElementById('staples-import-txt').value = '';
+  if (!isHidden) document.getElementById('staples-import-txt').focus();
+}
+function doStaplesImport() {
+  const txt = document.getElementById('staples-import-txt').value.trim();
+  if (!txt) return;
+  const lines = txt.split('\n').filter(l => l.trim());
+  const existing = new Set(staples.map(s => s.n.toLowerCase()));
+  let added = 0;
+  lines.forEach(line => {
+    const cols = line.includes('\t') ? line.split('\t') : line.split(',');
+    const costco = cols[0] ? cols[0].trim() : '';
+    const other  = cols[1] ? cols[1].trim() : '';
+    if (costco && !existing.has(costco.toLowerCase())) {
+      staples.push({ n: costco, a: '', c: 'Costco' });
+      existing.add(costco.toLowerCase()); added++;
+    }
+    if (other && !existing.has(other.toLowerCase())) {
+      staples.push({ n: other, a: '', c: 'Other' });
+      existing.add(other.toLowerCase()); added++;
+    }
+  });
+  save();
+  // Rebuild the staples row list to reflect newly added items
+  document.getElementById('staples-list').innerHTML = '';
+  staples.forEach(s => addStapleRow(s));
+  document.getElementById('staples-import-panel').classList.add('h');
+  document.getElementById('staples-import-txt').value = '';
+  toast(`Added ${added} staple${added !== 1 ? 's' : ''} ✓`);
+}
 
 // ---- Import ----
 function openImport() {
