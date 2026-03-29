@@ -167,36 +167,31 @@ function rShop() {
     return;
   }
 
-  let html = '';
-  const total = groc.length + staples.length;
+  // Build category map from meal ingredients
+  const byCat = {};
+  groc.forEach(i => { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i) });
+
+  // Merge staples in, skipping duplicates already present from meals
+  staples.forEach(i => {
+    const key = `${i.c}::${i.n}`;
+    const alreadyIn = (byCat[i.c] || []).some(x => `${x.c}::${x.n}` === key);
+    if (!alreadyIn) { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i); }
+  });
+
+  const total = Object.values(byCat).reduce((s, arr) => s + arr.length, 0);
   const done = Object.values(ckd).filter(Boolean).length;
 
-  // Staples section always first
-  if (hasStaples) {
-    html += `<div class="card"><div class="cat-hdr">📌 Staples</div>`;
-    staples.forEach(item => {
-      const raw = `staple:::${item.n.toLowerCase()}`;
+  let html = '';
+  CATS.forEach(cat => {
+    if (!byCat[cat]) return;
+    html += `<div class="card"><div class="cat-hdr">${cat}</div>`;
+    byCat[cat].forEach(item => {
+      const raw = `${item.c}::${item.n}`;
       const isck = ckd[raw];
       html += `<div class="si${isck ? ' ck' : ''}" onclick="togCk('${encodeURIComponent(raw)}')"><div class="sck"></div><div class="si-txt">${item.n}</div>${item.a ? `<div class="si-amt">${item.a}</div>` : ''}</div>`;
     });
     html += '</div>';
-  }
-
-  // Meal ingredients by category
-  if (hasGroc) {
-    const byCat = {};
-    groc.forEach(i => { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i) });
-    CATS.forEach(cat => {
-      if (!byCat[cat]) return;
-      html += `<div class="card"><div class="cat-hdr">${cat}</div>`;
-      byCat[cat].forEach(item => {
-        const raw = `${item.c}::${item.n}`;
-        const isck = ckd[raw];
-        html += `<div class="si${isck ? ' ck' : ''}" onclick="togCk('${encodeURIComponent(raw)}')"><div class="sck"></div><div class="si-txt">${item.n}</div>${item.a ? `<div class="si-amt">${item.a}</div>` : ''}</div>`;
-      });
-      html += '</div>';
-    });
-  }
+  });
 
   el.innerHTML = html;
   document.getElementById('prog-fill').style.width = `${total ? Math.round(done / total * 100) : 0}%`;
