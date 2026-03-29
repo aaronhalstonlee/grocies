@@ -13,7 +13,6 @@
 </head>
 
 <body>
-
   <div class="hdr">
     <h1>🍽 Dinner Planner</h1>
     <div class="hdr-sub" id="week-lbl"></div>
@@ -22,10 +21,13 @@
   <!-- PLAN -->
   <div id="tab-plan" class="tab on content">
     <div class="rules" id="rules-bar"></div>
-    <div class="row2" style="margin-bottom:13px">
-      <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
-      <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
-    </div>
+      <div class="row2" style="margin-bottom:8px">
+        <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
+        <button class="btn btn-s" onclick="openStaples()">📌 Staples</button>
+      </div>
+      <div style="margin-bottom:13px">
+        <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
+      </div>
     <div class="slbl">This Week</div>
     <div class="card" id="week-grid"></div>
   </div>
@@ -154,6 +156,25 @@
       </div>
     </div>
   </div>
+  
+  <!-- staples modal -->
+  <div class="ovr h" id="ov-staples">
+  <div class="modal">
+    <div class="modal-hnd"></div>
+    <div class="mhdr">
+      <h2>Staples</h2>
+      <button class="mcl" onclick="closeModal('ov-staples')">×</button>
+    </div>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:11px">
+      Items added here appear on every grocery list, regardless of what meals are planned.
+    </p>
+    <div id="staples-list"></div>
+    <button class="btn btn-s" style="margin-top:7px;font-size:.82rem" onclick="addStapleRow()">+ Add item</button>
+    <div style="margin-top:13px">
+      <button class="btn btn-p" onclick="saveStaples()">Save Staples</button>
+    </div>
+  </div>
+</div>
 
   <script src="script.js"></script>
 </body>
