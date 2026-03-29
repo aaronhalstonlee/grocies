@@ -169,7 +169,22 @@
       Items added here appear on every grocery list, regardless of what meals are planned.
     </p>
     <div id="staples-list"></div>
-    <button class="btn btn-s" style="margin-top:7px;font-size:.82rem" onclick="addStapleRow()">+ Add item</button>
+    <div style="display:flex;gap:8px;margin-top:7px">
+      <button class="btn btn-s" style="font-size:.82rem" onclick="addStapleRow()">+ Add item</button>
+      <button class="btn btn-s" style="font-size:.82rem" onclick="toggleStaplesImport()">📋 Import</button>
+    </div>
+    <!-- Import panel (hidden by default) -->
+    <div id="staples-import-panel" class="h" style="margin-top:11px">
+      <div class="guide">
+        Copy two columns from Google Sheets and paste below.<br>
+        <strong>Left column</strong> → Costco &nbsp;·&nbsp; <strong>Right column</strong> → Other<br>
+        Duplicates are skipped automatically.
+      </div>
+      <div class="fg">
+        <textarea id="staples-import-txt" rows="6" placeholder="Kirkland olive oil&#9;Eggs&#10;Kirkland chicken broth&#9;Bread&#10;..."></textarea>
+      </div>
+      <button class="btn btn-p" style="font-size:.85rem" onclick="doStaplesImport()">Add to Staples</button>
+    </div>
     <div style="margin-top:13px">
       <button class="btn btn-p" onclick="saveStaples()">Save Staples</button>
     </div>
