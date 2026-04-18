@@ -10,6 +10,46 @@
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448609.png">
   <meta name="apple-mobile-web-app-status-bar" content="#2d6a4f">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Import rule-slot rows */
+    .import-slot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--bdr);
+      gap: 10px;
+    }
+    .import-slot-row:last-child { border-bottom: none; }
+    .import-slot-name {
+      font-size: .85rem;
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .import-slot-btns { display: flex; gap: 5px; flex-shrink: 0; }
+    .islot-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 2px solid var(--bdr);
+      background: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+    .islot-on-v { background: #d8f3dc; border-color: #2d6a4f; }
+    .islot-on-p { background: #e3f2fd; border-color: #1565c0; }
+    .islot-on-s { background: #fff3e0; border-color: #e65100; }
+    .islot-on-o { background: #f3e5f5; border-color: #6a1b9a; }
+    #import-slots { margin: 11px 0 4px; }
+  </style>
 </head>
 
 <body>
@@ -21,13 +61,13 @@
   <!-- PLAN -->
   <div id="tab-plan" class="tab on content">
     <div class="rules" id="rules-bar"></div>
-      <div class="row2" style="margin-bottom:8px">
-        <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
-        <button class="btn btn-s" onclick="openStaples()">📌 Staples</button>
-      </div>
-      <div style="margin-bottom:13px">
-        <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
-      </div>
+    <div class="row2" style="margin-bottom:8px">
+      <button class="btn btn-o" onclick="autoGen()">🎲 Auto-Generate</button>
+      <button class="btn btn-s" onclick="openStaples()">📌 Staples</button>
+    </div>
+    <div style="margin-bottom:13px">
+      <button class="btn btn-s" onclick="genList()">🛒 Make List</button>
+    </div>
     <div class="slbl">This Week</div>
     <div class="card" id="week-grid"></div>
   </div>
@@ -51,8 +91,7 @@
   <div id="tab-shop" class="tab content">
     <div class="shop-hdr">
       <div class="slbl" style="margin:0">Grocery List</div>
-      <button class="btn btn-s" style="width:auto;padding:6px 11px;font-size:.75rem" onclick="clearCk()">Clear
-        checked</button>
+      <button class="btn btn-s" style="width:auto;padding:6px 11px;font-size:.75rem" onclick="clearCk()">Clear checked</button>
     </div>
     <div class="prog-bar">
       <div class="prog-fill" id="prog-fill" style="width:0%"></div>
@@ -73,7 +112,8 @@
     <div class="modal">
       <div class="modal-hnd"></div>
       <div class="mhdr">
-        <h2 id="assign-ttl">Choose a meal</h2><button class="mcl" onclick="closeModal('ov-assign')">×</button>
+        <h2 id="assign-ttl">Choose a meal</h2>
+        <button class="mcl" onclick="closeModal('ov-assign')">×</button>
       </div>
       <div id="assign-list"></div>
       <div style="margin-top:11px"><button class="btn btn-d" onclick="clearDay()">🗑 Remove meal</button></div>
@@ -85,7 +125,8 @@
     <div class="modal">
       <div class="modal-hnd"></div>
       <div class="mhdr">
-        <h2 id="meal-ttl">Add Meal</h2><button class="mcl" onclick="closeModal('ov-meal')">×</button>
+        <h2 id="meal-ttl">Add Meal</h2>
+        <button class="mcl" onclick="closeModal('ov-meal')">×</button>
       </div>
       <div class="fg"><label>Meal Name</label><input type="text" id="m-name" placeholder="e.g. Pasta Marinara"></div>
       <div class="fg">
@@ -98,8 +139,7 @@
         </div>
       </div>
       <div class="fg">
-        <label>Cuisine / Type <span style="font-weight:400;text-transform:none;letter-spacing:0">(helps vary the
-            week)</span></label>
+        <label>Cuisine / Type <span style="font-weight:400;text-transform:none;letter-spacing:0">(helps vary the week)</span></label>
         <select id="m-cuisine">
           <option value="">— not specified —</option>
           <option>American</option>
@@ -113,8 +153,7 @@
         </select>
       </div>
       <div class="fg">
-        <label>Ingredients <span style="font-weight:400;text-transform:none;letter-spacing:0">(name · amount ·
-            aisle)</span></label>
+        <label>Ingredients <span style="font-weight:400;text-transform:none;letter-spacing:0">(name · amount · aisle)</span></label>
         <div id="ing-list"></div>
         <button class="btn btn-s" style="margin-top:7px;font-size:.82rem" onclick="addIng()">+ Add ingredient</button>
       </div>
@@ -130,66 +169,61 @@
     <div class="modal">
       <div class="modal-hnd"></div>
       <div class="mhdr">
-        <h2>Import from Google Sheets</h2><button class="mcl" onclick="closeModal('ov-import')">×</button>
+        <h2>Import from Google Sheets</h2>
+        <button class="mcl" onclick="closeModal('ov-import')">×</button>
       </div>
       <div class="guide">
-        <strong>Step 1:</strong> In Google Sheets → <em>File → Download → CSV</em><br>
-        Open the CSV, select all, paste below. Or copy directly from your sheet (tab-separated is fine too).<br><br>
-        <strong>Expected columns:</strong><br>
-        <code>Meal Name</code> &nbsp;·&nbsp; <code>Category</code> &nbsp;·&nbsp; <code>Cuisine</code> (optional)<br><br>
-        <strong>Category values recognized:</strong><br>
-        <code>vegetarian</code> / <code>veg</code> &nbsp;·&nbsp; <code>pre-prepared</code> / <code>premade</code> /
-        <code>frozen</code><br>
-        <code>high-sodium</code> / <code>sodium</code> / <code>salty</code> &nbsp;·&nbsp; anything else → Free
-        Pick<br><br>
-        <em>Header row is auto-skipped. Duplicates are ignored.</em>
+        <strong>In your Google Sheet:</strong><br>
+        Each meal is its own <strong>column</strong>. The meal name goes in <strong>row 1</strong>, and each ingredient goes in the rows below it — one per cell.<br><br>
+        <strong>To export:</strong> Select all your meal columns → Copy → Paste below.<br>
+        Or: <em>File → Download → CSV</em>, open it, select all, paste.<br><br>
+        <em>Existing meals with the same name will have their ingredients updated.</em>
       </div>
       <div class="fg">
-        <label>Paste CSV / TSV data</label>
-        <textarea id="import-txt" rows="7"
-          placeholder="Pasta Marinara,vegetarian,Italian&#10;Frozen Pizza,pre-prepared&#10;Chicken Stir Fry,high-sodium,Asian&#10;Salmon & Veggies,,American"></textarea>
+        <label>Paste sheet data</label>
+        <textarea id="import-txt" rows="6" placeholder="spaghetti&#9;veggie tacos&#9;frozen pizza&#10;pasta&#9;tortillas&#9;&#10;marinara&#9;black beans&#9;&#10;parmesan&#9;bell pepper&#9;"></textarea>
       </div>
       <div class="import-prev" id="import-prev"></div>
-      <div class="row2">
+      <div id="import-slots" class="h"></div>
+      <div class="row2" style="margin-top:11px">
         <button class="btn btn-s" onclick="prevImport()">Preview</button>
         <button class="btn btn-p" onclick="doImport()">Import</button>
       </div>
     </div>
   </div>
-  
-  <!-- staples modal -->
+
+  <!-- STAPLES MODAL -->
   <div class="ovr h" id="ov-staples">
-  <div class="modal">
-    <div class="modal-hnd"></div>
-    <div class="mhdr">
-      <h2>Staples</h2>
-      <button class="mcl" onclick="closeModal('ov-staples')">×</button>
-    </div>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:11px">
-      Items added here appear on every grocery list, regardless of what meals are planned.
-    </p>
-    <div id="staples-list"></div>
-    <div style="display:flex;gap:8px;margin-top:7px">
-      <button class="btn btn-s" style="font-size:.82rem" onclick="addStapleRow()">+ Add item</button>
-      <button class="btn btn-s" style="font-size:.82rem" onclick="toggleStaplesImport()">📋 Import</button>
-    </div>
-    <!-- Import panel (hidden by default) -->
-    <div id="staples-import-panel" class="h" style="margin-top:11px">
-      <div class="guide">
-        Copy two columns from Google Sheets and paste below.<br>
-        <strong>Left column</strong> → Costco &nbsp;·&nbsp; <strong>Right column</strong> → Other<br>
-        Duplicates are skipped automatically.
+    <div class="modal">
+      <div class="modal-hnd"></div>
+      <div class="mhdr">
+        <h2>Staples</h2>
+        <button class="mcl" onclick="closeModal('ov-staples')">×</button>
       </div>
-      <div class="fg">
-        <textarea id="staples-import-txt" rows="6" placeholder="Kirkland olive oil&#9;Eggs&#10;Kirkland chicken broth&#9;Bread&#10;..."></textarea>
+      <p style="font-size:.78rem;color:var(--mut);margin-bottom:11px">
+        Items added here appear on every grocery list, regardless of what meals are planned.
+      </p>
+      <div id="staples-list"></div>
+      <div style="display:flex;gap:8px;margin-top:7px">
+        <button class="btn btn-s" style="font-size:.82rem" onclick="addStapleRow()">+ Add item</button>
+        <button class="btn btn-s" style="font-size:.82rem" onclick="toggleStaplesImport()">📋 Import</button>
       </div>
-      <button class="btn btn-p" style="font-size:.85rem" onclick="doStaplesImport()">Add to Staples</button>
-    </div>
-    <div style="margin-top:13px">
-      <button class="btn btn-p" onclick="saveStaples()">Save Staples</button>
+      <div id="staples-import-panel" class="h" style="margin-top:11px">
+        <div class="guide">
+          Copy two columns from Google Sheets and paste below.<br>
+          <strong>Left column</strong> → Costco &nbsp;·&nbsp; <strong>Right column</strong> → Other<br>
+          Duplicates are skipped automatically.
+        </div>
+        <div class="fg">
+          <textarea id="staples-import-txt" rows="6" placeholder="Kirkland olive oil&#9;Eggs&#10;Kirkland chicken broth&#9;Bread&#10;..."></textarea>
+        </div>
+        <button class="btn btn-p" style="font-size:.85rem" onclick="doStaplesImport()">Add to Staples</button>
+      </div>
+      <div style="margin-top:13px">
+        <button class="btn btn-p" onclick="saveStaples()">Save Staples</button>
+      </div>
     </div>
   </div>
-</div>
 
   <script src="script.js"></script>
 </body>
