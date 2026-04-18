@@ -167,11 +167,9 @@ function rShop() {
     return;
   }
 
-  // Build category map from meal ingredients
   const byCat = {};
   groc.forEach(i => { if (!byCat[i.c]) byCat[i.c] = []; byCat[i.c].push(i) });
 
-  // Merge staples in, skipping duplicates already present from meals
   staples.forEach(i => {
     const key = `${i.c}::${i.n}`;
     const alreadyIn = (byCat[i.c] || []).some(x => `${x.c}::${x.n}` === key);
@@ -347,7 +345,6 @@ function doStaplesImport() {
     }
   });
   save();
-  // Rebuild the staples row list to reflect newly added items
   document.getElementById('staples-list').innerHTML = '';
   staples.forEach(s => addStapleRow(s));
   document.getElementById('staples-import-panel').classList.add('h');
@@ -358,48 +355,99 @@ function doStaplesImport() {
 // ---- Import ----
 function openImport() {
   document.getElementById('import-txt').value = '';
-  document.getElementById('import-prev').textContent = '';
+  document.getElementById('import-prev').innerHTML = '';
+  document.getElementById('import-slots').innerHTML = '';
+  document.getElementById('import-slots').classList.add('h');
   iParsed = [];
   document.getElementById('ov-import').classList.remove('h');
 }
-function parseCSV(txt) {
+
+// Parse column-per-meal format:
+// Row 0: meal names (one per column)
+// Rows 1+: ingredients for that column's meal
+function parseSheetData(txt) {
   const lines = txt.trim().split('\n').filter(l => l.trim() !== '');
-  const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(','));
-  if (rows.length === 0) return [];
-  const out = [];
+  if (!lines.length) return [];
+  const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
   const numCols = rows[0].length;
+  const out = [];
   for (let c = 0; c < numCols; c++) {
-    const mealName = rows[0][c] ? rows[0][c].trim() : '';
+    const mealName = (rows[0][c] || '').trim();
     if (!mealName) continue;
-    const ingredients = [];
+    const ings = [];
     for (let r = 1; r < rows.length; r++) {
-      const ingName = rows[r][c] ? rows[r][c].trim() : '';
-      if (ingName) ingredients.push({ n: ingName, a: '', c: 'Costco' });
+      const ingName = (rows[r][c] || '').trim();
+      if (ingName) ings.push({ n: ingName, a: '', c: 'Other' });
     }
-    out.push({ name: mealName, primary: 'other', cuisine: '', ings: ingredients });
+    out.push({ name: mealName, primary: 'other', cuisine: '', ings });
   }
   return out;
 }
+
 function prevImport() {
   const txt = document.getElementById('import-txt').value;
-  iParsed = parseCSV(txt);
-  const el = document.getElementById('import-prev');
-  if (!iParsed.length) { el.textContent = 'No meals found in columns.'; return }
-  el.innerHTML = `<strong>Found ${iParsed.length} meal columns:</strong><br>` + iParsed.map(m => m.name).join(', ');
+  iParsed = parseSheetData(txt);
+  const prevEl = document.getElementById('import-prev');
+  const slotsEl = document.getElementById('import-slots');
+
+  if (!iParsed.length) {
+    prevEl.textContent = 'No meals found — make sure your data is tab or comma separated.';
+    slotsEl.classList.add('h');
+    return;
+  }
+
+  const ingTotal = iParsed.reduce((s, m) => s + m.ings.length, 0);
+  prevEl.innerHTML = `<strong>${iParsed.length} meal${iParsed.length !== 1 ? 's' : ''} found</strong> · ${ingTotal} total ingredients`;
+
+  // Render rule slot selectors for each meal
+  slotsEl.classList.remove('h');
+  slotsEl.innerHTML = `
+    <div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);margin-bottom:8px">
+      Set rule slot for each meal
+    </div>` +
+    iParsed.map((m, i) => `
+      <div class="import-slot-row" data-idx="${i}">
+        <div class="import-slot-name">${m.name}</div>
+        <div class="import-slot-btns">
+          <button class="islot-btn ${m.primary === 'vegetarian' ? 'islot-on-v' : ''}" onclick="setSlot(${i},'vegetarian')">🥦</button>
+          <button class="islot-btn ${m.primary === 'pre-prepared' ? 'islot-on-p' : ''}" onclick="setSlot(${i},'pre-prepared')">🧊</button>
+          <button class="islot-btn ${m.primary === 'high-sodium' ? 'islot-on-s' : ''}" onclick="setSlot(${i},'high-sodium')">🧂</button>
+          <button class="islot-btn ${m.primary === 'other' ? 'islot-on-o' : ''}" onclick="setSlot(${i},'other')">🍴</button>
+        </div>
+      </div>`
+    ).join('');
 }
+
+function setSlot(idx, prim) {
+  iParsed[idx].primary = prim;
+  // Re-render just that row's buttons
+  const row = document.querySelector(`.import-slot-row[data-idx="${idx}"]`);
+  if (!row) return;
+  const onCls = { vegetarian: 'islot-on-v', 'pre-prepared': 'islot-on-p', 'high-sodium': 'islot-on-s', other: 'islot-on-o' };
+  row.querySelectorAll('.islot-btn').forEach(btn => {
+    btn.className = 'islot-btn';
+  });
+  const prims = ['vegetarian', 'pre-prepared', 'high-sodium', 'other'];
+  const btns = row.querySelectorAll('.islot-btn');
+  btns[prims.indexOf(prim)].className = `islot-btn ${onCls[prim]}`;
+}
+
 function doImport() {
   if (!iParsed.length) {
-    iParsed = parseCSV(document.getElementById('import-txt').value);
-    if (!iParsed.length) return;
+    iParsed = parseSheetData(document.getElementById('import-txt').value);
+    if (!iParsed.length) { toast('Paste your sheet data first, then Preview.'); return; }
   }
   let added = 0, updated = 0;
   iParsed.forEach(m => {
     const idx = meals.findIndex(ex => ex.name.toLowerCase() === m.name.toLowerCase());
-    if (idx > -1) { meals[idx].ings = m.ings; updated++; }
+    if (idx > -1) { meals[idx].ings = m.ings; meals[idx].primary = m.primary; updated++; }
     else { meals.push({ id: uid(), ...m }); added++; }
   });
   save(); rAll(); closeModal('ov-import');
-  toast(`Imported: ${added} new, ${updated} updated`);
+  // Jump to meals tab so they can see what was imported
+  const mealsBtn = document.querySelectorAll('.nb')[1];
+  swTab('meals', mealsBtn);
+  toast(`${added} added, ${updated} updated ✓`);
 }
 
 // ---- Shop ----
