@@ -515,10 +515,8 @@ async function pullFromCloud() {
     const data = await res.json();
     if (!data) { setSyncStatus('No cloud data found yet'); return; }
 
-    // Merge meals: cloud wins for existing names, local-only meals are kept
-    const cloudMealNames = new Set((data.meals || []).map(m => m.name.toLowerCase()));
-    const localOnly = meals.filter(m => !cloudMealNames.has(m.name.toLowerCase()));
-    meals = [...(data.meals || []).map(m => ({ id: m.id || uid(), ...m })), ...localOnly];
+    // Cloud fully overwrites local meals and staples
+    meals = (data.meals || []).map(m => ({ id: m.id || uid(), ...m }));
 
     // Staples: cloud replaces local (staples are managed there)
     if (data.staples) staples = data.staples;
