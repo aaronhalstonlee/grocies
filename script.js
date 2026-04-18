@@ -440,8 +440,20 @@ function doImport() {
   let added = 0, updated = 0;
   iParsed.forEach(m => {
     const idx = meals.findIndex(ex => ex.name.toLowerCase() === m.name.toLowerCase());
-    if (idx > -1) { meals[idx].ings = m.ings; meals[idx].primary = m.primary; updated++; }
-    else { meals.push({ id: uid(), ...m }); added++; }
+    if (idx > -1) {
+      // Preserve existing category assignments when merging ingredients
+      const oldIngs = meals[idx].ings;
+      const mergedIngs = m.ings.map(newIng => {
+        const existing = oldIngs.find(o => o.n.toLowerCase() === newIng.n.toLowerCase());
+        return existing ? { ...newIng, c: existing.c } : newIng;
+      });
+      meals[idx].ings = mergedIngs;
+      meals[idx].primary = m.primary;
+      updated++;
+    } else {
+      meals.push({ id: uid(), ...m });
+      added++;
+    }
   });
   save(); rAll(); closeModal('ov-import');
   // Jump to meals tab so they can see what was imported
