@@ -466,6 +466,97 @@ function doImport() {
 function togCk(enc) { const k = decodeURIComponent(enc); ckd[k] = !ckd[k]; save(); rShop() }
 function clearCk() { Object.keys(ckd).forEach(k => { if (ckd[k]) delete ckd[k] }); save(); rShop() }
 
+// ---- Settings / Firebase ----
+function saveConfig() {
+  const url = document.getElementById('fb-url').value.trim().replace(/\/$/, '');
+  const secret = document.getElementById('fb-secret').value.trim();
+  if (!url) { toast('Enter your Firebase URL'); return; }
+  localStorage.setItem('dp3_fb_url', url);
+  localStorage.setItem('dp3_fb_secret', secret);
+  toast('Config saved ✓');
+}
+
+function fbUrl(path) {
+  const base = localStorage.getItem('dp3_fb_url');
+  const secret = localStorage.getItem('dp3_fb_secret');
+  if (!base) return null;
+  return `${base}/${path}.json${secret ? `?auth=${secret}` : ''}`;
+}
+
+async function pushToCloud() {
+  const url = fbUrl('dinnerplanner');
+  if (!url) { toast('Set your Firebase URL first'); return; }
+  setSyncStatus('Saving to cloud…');
+  try {
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meals, staples, savedAt: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ts = new Date().toLocaleString();
+    localStorage.setItem('dp3_last_sync', ts);
+    setSyncStatus(`Last saved: ${ts}`);
+    toast('☁️ Saved to cloud ✓');
+  } catch (e) {
+    setSyncStatus('Save failed — check your URL/secret');
+    toast('❌ Save failed');
+    console.error(e);
+  }
+}
+
+async function pullFromCloud() {
+  const url = fbUrl('dinnerplanner');
+  if (!url) { toast('Set your Firebase URL first'); return; }
+  setSyncStatus('Syncing from cloud…');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data) { setSyncStatus('No cloud data found yet'); return; }
+
+    // Merge meals: cloud wins for existing names, local-only meals are kept
+    const cloudMealNames = new Set((data.meals || []).map(m => m.name.toLowerCase()));
+    const localOnly = meals.filter(m => !cloudMealNames.has(m.name.toLowerCase()));
+    meals = [...(data.meals || []).map(m => ({ id: m.id || uid(), ...m })), ...localOnly];
+
+    // Staples: cloud replaces local (staples are managed there)
+    if (data.staples) staples = data.staples;
+
+    save(); rAll();
+    const ts = new Date().toLocaleString();
+    localStorage.setItem('dp3_last_sync', ts);
+    setSyncStatus(`Last synced: ${ts}`);
+    toast('🔄 Synced from cloud ✓');
+  } catch (e) {
+    setSyncStatus('Sync failed — check your URL/secret');
+    toast('❌ Sync failed');
+    console.error(e);
+  }
+}
+
+function setSyncStatus(msg) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = msg;
+}
+
+function clearAllData() {
+  if (!confirm('This will wipe all local meals, plan, staples, and grocery list. Continue?')) return;
+  ['dp3_meals','dp3_plan','dp3_last','dp3_groc','dp3_ckd','dp3_staples'].forEach(k => localStorage.removeItem(k));
+  meals = seed(); plan = {}; lastWk = []; groc = []; ckd = {}; staples = [];
+  save(); rAll();
+  toast('Local data cleared');
+}
+
+function loadConfig() {
+  const url = localStorage.getItem('dp3_fb_url');
+  const secret = localStorage.getItem('dp3_fb_secret');
+  const lastSync = localStorage.getItem('dp3_last_sync');
+  if (url) document.getElementById('fb-url').value = url;
+  if (secret) document.getElementById('fb-secret').value = secret;
+  if (lastSync) setSyncStatus(`Last synced: ${lastSync}`);
+}
+
 // ---- Toast ----
 function toast(msg, ms = 2400) {
   const t = document.getElementById('toast');
@@ -475,3 +566,4 @@ function toast(msg, ms = 2400) {
 
 document.querySelectorAll('.ovr').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.add('h') }));
 rAll();
+loadConfig();

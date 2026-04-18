@@ -103,6 +103,7 @@
     <button class="nb on" onclick="swTab('plan',this)"><span>🗓</span><span>Plan</span></button>
     <button class="nb" onclick="swTab('meals',this)"><span>🍽</span><span>Meals</span></button>
     <button class="nb" onclick="swTab('shop',this)"><span>🛒</span><span>Shop</span></button>
+    <button class="nb" onclick="swTab('settings',this)"><span>⚙️</span><span>Settings</span></button>
   </nav>
   <button class="fab" id="fab" onclick="openAdd()">+</button>
   <div class="toast" id="toast"></div>
@@ -224,8 +225,37 @@
       </div>
     </div>
   </div>
-  
-  <script type="module" src="script.js"></script>
+
+  <!-- SETTINGS TAB -->
+  <div id="tab-settings" class="tab content">
+    <div class="slbl">Cloud Sync</div>
+    <div class="card" style="padding:14px">
+      <div class="fg">
+        <label>Firebase Database URL</label>
+        <input type="text" id="fb-url" placeholder="https://your-project-default-rtdb.firebaseio.com">
+        <div style="font-size:.7rem;color:var(--mut);margin-top:5px">Found in Firebase Console → Realtime Database</div>
+      </div>
+      <div class="fg">
+        <label>Database Secret <span style="font-weight:400;text-transform:none;letter-spacing:0">(for write access)</span></label>
+        <input type="text" id="fb-secret" placeholder="your-database-secret">
+        <div style="font-size:.7rem;color:var(--mut);margin-top:5px">Project Settings → Service Accounts → Database Secrets</div>
+      </div>
+      <button class="btn btn-s" style="margin-bottom:8px" onclick="saveConfig()">💾 Save Config</button>
+      <div id="sync-status" style="font-size:.75rem;color:var(--mut);margin-bottom:12px;min-height:1.2em"></div>
+      <div class="row2">
+        <button class="btn btn-p" onclick="pushToCloud()">☁️ Save to Cloud</button>
+        <button class="btn btn-s" onclick="pullFromCloud()">🔄 Sync from Cloud</button>
+      </div>
+    </div>
+
+    <div class="slbl" style="margin-top:16px">Danger Zone</div>
+    <div class="card" style="padding:14px">
+      <p style="font-size:.78rem;color:var(--mut);margin-bottom:12px">Wipe all local data. Make sure you've saved to cloud first.</p>
+      <button class="btn btn-d" onclick="clearAllData()">🗑 Clear All Local Data</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 
 </html>
